@@ -1,5 +1,6 @@
 package com.huanpham.financetracker.model.dto;
 
+import com.huanpham.financetracker.FinanceTrackerApplication;
 import com.huanpham.financetracker.model.Transaction;
 import com.huanpham.financetracker.model.TransactionType;
 import jakarta.validation.constraints.DecimalMax;
@@ -43,7 +44,7 @@ public class TransactionForm {
     @NotNull(message = "Vui lòng chọn ngày giao dịch")
     @PastOrPresent(message = "Ngày giao dịch không được ở tương lai")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate date = LocalDate.now();
+    private LocalDate date = LocalDate.now(FinanceTrackerApplication.VIETNAM_ZONE);
 
     @NotNull(message = "Vui lòng chọn danh mục")
     private Long categoryId;

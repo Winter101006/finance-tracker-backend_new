@@ -1,5 +1,6 @@
 package com.huanpham.financetracker.controller;
 
+import com.huanpham.financetracker.FinanceTrackerApplication;
 import com.huanpham.financetracker.model.Transaction;
 import com.huanpham.financetracker.model.TransactionType;
 import com.huanpham.financetracker.model.dto.TransactionFilter;
@@ -30,7 +31,7 @@ public class DashboardController {
     @GetMapping("/")
     public String dashboard(@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month,
                             Model model) {
-        YearMonth selected = month == null ? YearMonth.now() : month;
+        YearMonth selected = month == null ? YearMonth.now(FinanceTrackerApplication.VIETNAM_ZONE) : month;
         List<Transaction> monthTransactions = transactionService.search(
                 new TransactionFilter(selected, null, null, null));
 

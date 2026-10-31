@@ -1,5 +1,6 @@
 package com.huanpham.financetracker.model;
 
+import com.huanpham.financetracker.FinanceTrackerApplication;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -67,13 +68,13 @@ public class Transaction {
 
     @PrePersist
     void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(FinanceTrackerApplication.VIETNAM_ZONE);
         updatedAt = createdAt;
     }
 
     @PreUpdate
     void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(FinanceTrackerApplication.VIETNAM_ZONE);
     }
 
     public boolean isIncome() {

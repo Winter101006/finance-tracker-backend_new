@@ -1,5 +1,6 @@
 package com.huanpham.financetracker.controller;
 
+import com.huanpham.financetracker.FinanceTrackerApplication;
 import com.huanpham.financetracker.model.Transaction;
 import com.huanpham.financetracker.model.TransactionType;
 import com.huanpham.financetracker.model.dto.TransactionFilter;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -98,6 +100,7 @@ public class TransactionController {
         model.addAttribute("form", form);
         model.addAttribute("incomeCategories", categoryService.findByType(TransactionType.INCOME));
         model.addAttribute("expenseCategories", categoryService.findByType(TransactionType.EXPENSE));
+        model.addAttribute("today", LocalDate.now(FinanceTrackerApplication.VIETNAM_ZONE));
         model.addAttribute("activePage", "transactions");
         return "transactions/form";
     }

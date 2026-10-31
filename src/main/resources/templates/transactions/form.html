@@ -77,7 +77,7 @@
                             <div class="col-md-5">
                                 <label for="date" class="form-label fw-semibold">Ngày</label>
                                 <input type="date" class="form-control" th:field="*{date}" th:errorclass="is-invalid"
-                                       th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" required>
+                                       th:max="${today ?: #temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" required>
                                 <div class="invalid-feedback" th:errors="*{date}"></div>
                             </div>
                         </div>

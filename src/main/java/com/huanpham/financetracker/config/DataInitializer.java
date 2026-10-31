@@ -1,5 +1,6 @@
 package com.huanpham.financetracker.config;
 
+import com.huanpham.financetracker.FinanceTrackerApplication;
 import com.huanpham.financetracker.model.Category;
 import com.huanpham.financetracker.model.Transaction;
 import com.huanpham.financetracker.model.TransactionType;
@@ -79,8 +80,8 @@ public class DataInitializer implements ApplicationRunner {
     private List<Transaction> sampleTransactions() {
         Map<String, Category> byName = categoryRepository.findAll().stream()
                 .collect(Collectors.toMap(Category::getName, Function.identity(), (a, b) -> a));
-        YearMonth current = YearMonth.now();
-        LocalDate today = LocalDate.now();
+        YearMonth current = YearMonth.now(FinanceTrackerApplication.VIETNAM_ZONE);
+        LocalDate today = LocalDate.now(FinanceTrackerApplication.VIETNAM_ZONE);
         List<Transaction> list = new java.util.ArrayList<>();
         for (int i = 5; i >= 0; i--) {
             YearMonth m = current.minusMonths(i);
