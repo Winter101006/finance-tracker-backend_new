@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Danh mục')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 page-title mb-1">Danh mục thu / chi</h1>
+            <p class="text-muted mb-0">Phân loại giao dịch để theo dõi và thống kê chính xác hơn</p>
+        </div>
+        <a th:href="@{/categories/new}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm danh mục</a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Lặp qua 2 nhóm: Chi tiêu và Thu nhập -->
+        <div class="col-lg-6"
+             th:each="group : ${ {
+                {'EXPENSE', 'Danh mục chi tiêu', 'text-expense', 'bi-arrow-up-right'},
+                {'INCOME', 'Danh mục thu nhập', 'text-income', 'bi-arrow-down-left'}
+             } }"
+             th:with="items=${group[0] == 'EXPENSE' ? expenseCategories : incomeCategories}">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span th:class="${group[2]}">
+                        <i class="bi me-2" th:classappend="${group[3]}"></i><span th:text="${group[1]}">Nhóm</span>
+                        <span class="badge text-bg-light ms-1" th:text="${#lists.size(items)}">0</span>
+                    </span>
+                    <a th:href="@{/categories/new(type=${group[0]})}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus"></i> Thêm
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(items)}" class="empty-state">
+                        <i class="bi bi-tags"></i>Chưa có danh mục nào
+                    </div>
+                    <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(items)}">
+                        <li class="list-group-item d-flex align-items-center gap-3 py-3" th:each="c : ${items}">
+                            <span class="cat-icon" th:style="'background:' + ${c.color}">
+                                <i class="bi" th:classappend="${c.icon}"></i>
+                            </span>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" th:text="${c.name}">Tên</div>
+                                <div class="small text-muted"
+                                     th:with="count=${usage.get(c.id) ?: 0}"
+                                     th:text="${count == 0} ? 'Chưa có giao dịch' : ${count} + ' giao dịch'">0 giao dịch</div>
+                            </div>
+                            <a th:href="@{/categories/{id}/edit(id=${c.id})}" class="btn btn-sm btn-outline-primary" title="Sửa">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/categories/{id}/delete(id=${c.id})}" method="post" class="d-inline"
+                                  th:data-confirm="|Xóa danh mục: ${c.name}?|">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa"
+                                        th:disabled="${(usage.get(c.id) ?: 0) > 0}"
+                                        th:title="${(usage.get(c.id) ?: 0) > 0} ? 'Không thể xóa: danh mục đang được sử dụng' : 'Xóa'">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

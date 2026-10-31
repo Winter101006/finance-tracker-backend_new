@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${form.id == null ? 'Thêm giao dịch' : 'Sửa giao dịch'})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a th:href="@{/transactions}">Giao dịch</a></li>
+                    <li class="breadcrumb-item active" th:text="${form.id == null} ? 'Thêm mới' : 'Chỉnh sửa'">Thêm mới</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi me-2" th:classappend="${form.id == null} ? 'bi-plus-circle' : 'bi-pencil-square'"></i>
+                    <span th:text="${form.id == null} ? 'Thêm giao dịch mới' : 'Chỉnh sửa giao dịch'">Thêm giao dịch</span>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/transactions/save}" th:object="${form}" method="post" novalidate>
+                        <input type="hidden" th:field="*{id}">
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                            <p class="mb-0" th:each="err : ${#fields.globalErrors()}" th:text="${err}">Lỗi</p>
+                        </div>
+
+                        <!-- Loại -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Loại giao dịch</label>
+                            <div class="btn-group w-100 type-switch" role="group">
+                                <input type="radio" class="btn-check" th:field="*{type}" value="EXPENSE" id="typeExpense">
+                                <label class="btn btn-outline-danger" for="typeExpense"><i class="bi bi-arrow-up-right me-1"></i>Chi tiêu</label>
+                                <input type="radio" class="btn-check" th:field="*{type}" value="INCOME" id="typeIncome">
+                                <label class="btn btn-outline-success" for="typeIncome"><i class="bi bi-arrow-down-left me-1"></i>Thu nhập</label>
+                            </div>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
+                        </div>
+
+                        <!-- Số tiền -->
+                        <div class="mb-3">
+                            <label for="amount" class="form-label fw-semibold">Số tiền</label>
+                            <div class="input-group input-group-lg">
+                                <input type="number" step="any" min="0" class="form-control" th:field="*{amount}"
+                                       th:errorclass="is-invalid" placeholder="0" required>
+                                <span class="input-group-text">₫</span>
+                                <div class="invalid-feedback" th:errors="*{amount}"></div>
+                            </div>
+                            <div class="form-text" id="amountPreview">&nbsp;</div>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-semibold">Mô tả</label>
+                            <input type="text" class="form-control" th:field="*{description}" th:errorclass="is-invalid"
+                                   maxlength="100" placeholder="VD: Ăn trưa, Lương tháng 10..." required>
+                            <div class="invalid-feedback" th:errors="*{description}"></div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <!-- Danh mục -->
+                            <div class="col-md-7">
+                                <label for="categoryId" class="form-label fw-semibold">Danh mục</label>
+                                <select class="form-select" th:field="*{categoryId}" th:errorclass="is-invalid" required>
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <option th:each="c : ${expenseCategories}" th:value="${c.id}" th:text="${c.name}"
+                                            data-type="EXPENSE">Chi</option>
+                                    <option th:each="c : ${incomeCategories}" th:value="${c.id}" th:text="${c.name}"
+                                            data-type="INCOME">Thu</option>
+                                </select>
+                                <div class="invalid-feedback" th:errors="*{categoryId}"></div>
+                                <div class="form-text"><a th:href="@{/categories/new}">+ Tạo danh mục mới</a></div>
+                            </div>
+                            <!-- Ngày -->
+                            <div class="col-md-5">
+                                <label for="date" class="form-label fw-semibold">Ngày</label>
+                                <input type="date" class="form-control" th:field="*{date}" th:errorclass="is-invalid"
+                                       th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" required>
+                                <div class="invalid-feedback" th:errors="*{date}"></div>
+                            </div>
+                        </div>
+
+                        <!-- Ghi chú -->
+                        <div class="mb-4">
+                            <label for="note" class="form-label fw-semibold">Ghi chú <span class="text-muted fw-normal">(không bắt buộc)</span></label>
+                            <textarea class="form-control" th:field="*{note}" th:errorclass="is-invalid" rows="2"
+                                      maxlength="255" placeholder="Thông tin thêm..."></textarea>
+                            <div class="invalid-feedback" th:errors="*{note}"></div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a th:href="@{/transactions}" class="btn btn-outline-secondary">Hủy</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-lg me-1"></i>
+                                <span th:text="${form.id == null} ? 'Thêm giao dịch' : 'Lưu thay đổi'">Lưu</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+    (function () {
+        // Chỉ hiển thị các danh mục khớp với loại giao dịch đang chọn
+        const select = document.getElementById('categoryId');
+        const placeholder = select.options[0].cloneNode(true);
+        const allOptions = Array.from(select.querySelectorAll('option[data-type]')).map(o => o.cloneNode(true));
+        const initial = select.value;
+
+        function refresh() {
+            const checked = document.querySelector('input[name="type"]:checked');
+            const type = checked ? checked.value : 'EXPENSE';
+            const current = select.value || initial;
+            select.innerHTML = '';
+            select.appendChild(placeholder.cloneNode(true));
+            allOptions.filter(o => o.dataset.type === type).forEach(o => {
+                const opt = o.cloneNode(true);
+                opt.selected = opt.value === current;
+                select.appendChild(opt);
+            });
+            if (!Array.from(select.options).some(o => o.selected && o.value)) {
+                select.value = '';
+            }
+        }
+
+        document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener('change', refresh));
+        refresh();
+
+        // Xem trước số tiền đã định dạng
+        const amount = document.getElementById('amount');
+        const preview = document.getElementById('amountPreview');
+        function showPreview() {
+            preview.textContent = amount.value ? formatVnd(amount.value) : '\u00a0';
+        }
+        amount.addEventListener('input', showPreview);
+        showPreview();
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tổng quan')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <!-- ===== Tiêu đề + chọn tháng ===== -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 page-title mb-1">Tổng quan tài chính</h1>
+            <p class="text-muted mb-0">
+                Tháng <strong th:text="${#temporals.format(selectedMonth.atDay(1), 'MM/yyyy')}">10/2026</strong>
+                &middot; <span th:text="${monthly.transactionCount()}">0</span> giao dịch
+            </p>
+        </div>
+        <form class="month-nav d-flex align-items-center gap-2" th:action="@{/}" method="get">
+            <a class="btn btn-outline-secondary" th:href="@{/(month=${prevMonth})}" title="Tháng trước">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <input type="month" name="month" class="form-control" th:value="${selectedMonth}" data-auto-submit>
+            <a class="btn btn-outline-secondary" th:href="@{/(month=${nextMonth})}" title="Tháng sau">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+            <a class="btn btn-outline-primary" th:href="@{/}" title="Tháng hiện tại">Hôm nay</a>
+        </form>
+    </div>
+
+    <!-- ===== Thẻ thống kê ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card bg-balance h-100">
+                <div class="card-body d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label">Tổng số dư</div>
+                        <div class="stat-value mt-1"
+                             th:text="${#numbers.formatDecimal(overall.balance(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                        <div class="small mt-2 opacity-75">Toàn bộ thời gian</div>
+                    </div>
+                    <span class="stat-icon"><i class="bi bi-wallet2"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label">Thu trong tháng</div>
+                        <div class="stat-value text-income mt-1"
+                             th:text="'+' + ${#numbers.formatDecimal(monthly.totalIncome(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                        <div class="small text-muted mt-2">
+                            Tổng: <span th:text="${#numbers.formatDecimal(overall.totalIncome(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0</span>
+                        </div>
+                    </div>
+                    <span class="stat-icon icon-income"><i class="bi bi-arrow-down-left"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label">Chi trong tháng</div>
+                        <div class="stat-value text-expense mt-1"
+                             th:text="'-' + ${#numbers.formatDecimal(monthly.totalExpense(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                        <div class="small text-muted mt-2">
+                            Tổng: <span th:text="${#numbers.formatDecimal(overall.totalExpense(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0</span>
+                        </div>
+                    </div>
+                    <span class="stat-icon icon-expense"><i class="bi bi-arrow-up-right"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label">Chênh lệch tháng</div>
+                        <div class="stat-value mt-1"
+                             th:classappend="${monthly.isNegative()} ? 'text-expense' : 'text-income'"
+                             th:text="${#numbers.formatDecimal(monthly.balance(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                        <div class="small text-muted mt-2">
+                            Tỷ lệ tiết kiệm: <strong th:text="${monthly.savingRate()} + '%'">0%</strong>
+                        </div>
+                    </div>
+                    <span class="stat-icon icon-net"><i class="bi bi-piggy-bank"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Biểu đồ ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-pie-chart me-2 text-primary"></i>Cơ cấu theo danh mục</span>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Chọn loại">
+                        <input type="radio" class="btn-check" name="pieType" id="pieExpense" value="expense" checked>
+                        <label class="btn btn-outline-danger" for="pieExpense">Chi</label>
+                        <input type="radio" class="btn-check" name="pieType" id="pieIncome" value="income">
+                        <label class="btn btn-outline-success" for="pieIncome">Thu</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-box">
+                        <canvas id="categoryChart" aria-label="Biểu đồ tròn theo danh mục" role="img"></canvas>
+                        <div id="categoryEmpty" class="empty-state position-absolute top-50 start-50 translate-middle d-none">
+                            <i class="bi bi-inbox"></i>Chưa có dữ liệu trong tháng này
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-graph-up me-2 text-primary"></i>Dòng tiền theo thời gian</span>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Chọn khoảng thời gian">
+                        <input type="radio" class="btn-check" name="flowRange" id="flowMonthly" value="monthly" checked>
+                        <label class="btn btn-outline-primary" for="flowMonthly">12 tháng</label>
+                        <input type="radio" class="btn-check" name="flowRange" id="flowDaily" value="daily">
+                        <label class="btn btn-outline-primary" for="flowDaily">Theo ngày</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-box">
+                        <canvas id="cashFlowChart" aria-label="Biểu đồ dòng tiền" role="img"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Top danh mục + Giao dịch gần đây ===== -->
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header"><i class="bi bi-bar-chart me-2 text-danger"></i>Top chi tiêu tháng này</div>
+                <div class="card-body">
+                    <div th:if="${expenseByCategory.isEmpty()}" class="empty-state">
+                        <i class="bi bi-emoji-smile"></i>Chưa có khoản chi nào
+                    </div>
+                    <div th:unless="${expenseByCategory.isEmpty()}">
+                        <div th:each="label, st : ${expenseByCategory.labels()}" class="mb-3"
+                             th:with="value=${expenseByCategory.values()[st.index]},
+                                      color=${expenseByCategory.colors()[st.index]},
+                                      pct=${monthly.totalExpense().signum() == 0 ? 0 : value.doubleValue() * 100 / monthly.totalExpense().doubleValue()}">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="fw-semibold" th:text="${label}">Ăn uống</span>
+                                <span>
+                                    <span th:text="${#numbers.formatDecimal(value, 1, 'POINT', 0, 'COMMA')} + ' ₫'">0</span>
+                                    <span class="text-muted" th:text="'(' + ${#numbers.formatDecimal(pct, 1, 1)} + '%)'">(0%)</span>
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar"
+                                     th:style="'width:' + ${pct} + '%; background:' + ${color}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clock-history me-2 text-primary"></i>Giao dịch gần đây</span>
+                    <a th:href="@{/transactions}" class="btn btn-sm btn-link text-decoration-none">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(recentTransactions)}" class="empty-state">
+                        <i class="bi bi-receipt"></i>Chưa có giao dịch nào.
+                        <div class="mt-2"><a th:href="@{/transactions/new}" class="btn btn-primary btn-sm">Thêm giao dịch đầu tiên</a></div>
+                    </div>
+                    <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(recentTransactions)}">
+                        <li class="list-group-item d-flex align-items-center gap-3 py-3" th:each="t : ${recentTransactions}">
+                            <span class="cat-icon" th:style="'background:' + ${t.category.color}">
+                                <i class="bi" th:classappend="${t.category.icon}"></i>
+                            </span>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-semibold text-truncate" th:text="${t.description}">Mô tả</div>
+                                <div class="small text-muted">
+                                    <span th:text="${t.category.name}">Danh mục</span> &middot;
+                                    <span th:text="${#temporals.format(t.date, 'dd/MM/yyyy')}">01/01/2026</span>
+                                </div>
+                            </div>
+                            <div class="fw-bold text-nowrap" th:classappend="${t.income} ? 'text-income' : 'text-expense'"
+                                 th:text="(${t.income} ? '+' : '-') + ${#numbers.formatDecimal(t.amount, 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const pieData = {
+        expense: {
+            labels: /*[[${expenseByCategory.labels()}]]*/ [],
+            values: /*[[${expenseByCategory.values()}]]*/ [],
+            colors: /*[[${expenseByCategory.colors()}]]*/ []
+        },
+        income: {
+            labels: /*[[${incomeByCategory.labels()}]]*/ [],
+            values: /*[[${incomeByCategory.values()}]]*/ [],
+            colors: /*[[${incomeByCategory.colors()}]]*/ []
+        }
+    };
+    const flowData = {
+        monthly: {
+            labels: /*[[${monthlyCashFlow.labels()}]]*/ [],
+            income: /*[[${monthlyCashFlow.income()}]]*/ [],
+            expense: /*[[${monthlyCashFlow.expense()}]]*/ [],
+            balance: /*[[${monthlyCashFlow.cumulativeBalance()}]]*/ []
+        },
+        daily: {
+            labels: /*[[${dailyCashFlow.labels()}]]*/ [],
+            income: /*[[${dailyCashFlow.income()}]]*/ [],
+            expense: /*[[${dailyCashFlow.expense()}]]*/ [],
+            balance: /*[[${dailyCashFlow.cumulativeBalance()}]]*/ []
+        }
+    };
+    /*]]>*/
+</script>
+<script>
+    (function () {
+        Chart.defaults.font.family = '"Be Vietnam Pro", system-ui, sans-serif';
+        Chart.defaults.color = '#64748b';
+
+        // ---------- Biểu đồ tròn theo danh mục ----------
+        const emptyBox = document.getElementById('categoryEmpty');
+        const categoryChart = new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {labels: [], datasets: [{data: [], backgroundColor: [], borderWidth: 2, borderColor: '#fff', hoverOffset: 8}]},
+            options: {
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: {
+                    legend: {position: 'bottom', labels: {usePointStyle: true, boxWidth: 8, padding: 14}},
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + Number(b), 0);
+                                const pct = total ? (Number(ctx.raw) * 100 / total).toFixed(1) : 0;
+                                return ' ' + ctx.label + ': ' + formatVnd(ctx.raw) + ' (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function renderPie(kind) {
+            const d = pieData[kind];
+            categoryChart.data.labels = d.labels;
+            categoryChart.data.datasets[0].data = d.values;
+            categoryChart.data.datasets[0].backgroundColor = d.colors;
+            categoryChart.update();
+            emptyBox.classList.toggle('d-none', d.values.length > 0);
+        }
+
+        document.querySelectorAll('input[name="pieType"]').forEach(function (el) {
+            el.addEventListener('change', function () { renderPie(el.value); });
+        });
+        renderPie('expense');
+
+        // ---------- Biểu đồ dòng tiền ----------
+        const cashFlowChart = new Chart(document.getElementById('cashFlowChart'), {
+            data: {
+                labels: [],
+                datasets: [
+                    {type: 'bar', label: 'Thu', data: [], backgroundColor: 'rgba(22,163,74,.75)', borderRadius: 6, order: 2},
+                    {type: 'bar', label: 'Chi', data: [], backgroundColor: 'rgba(220,38,38,.75)', borderRadius: 6, order: 3},
+                    {
+                        type: 'line', label: 'Số dư lũy kế', data: [], borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79,70,229,.12)', fill: true, tension: .35,
+                        pointRadius: 3, pointHoverRadius: 6, borderWidth: 2.5, order: 1
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                interaction: {mode: 'index', intersect: false},
+                scales: {
+                    x: {grid: {display: false}},
+                    y: {ticks: {callback: (v) => formatShortVnd(v)}, grid: {color: 'rgba(15,23,42,.06)'}}
+                },
+                plugins: {
+                    legend: {position: 'bottom', labels: {usePointStyle: true, boxWidth: 8, padding: 14}},
+                    tooltip: {callbacks: {label: (ctx) => ' ' + ctx.dataset.label + ': ' + formatVnd(ctx.raw)}}
+                }
+            }
+        });
+
+        function renderFlow(range) {
+            const d = flowData[range];
+            cashFlowChart.data.labels = d.labels;
+            cashFlowChart.data.datasets[0].data = d.income;
+            cashFlowChart.data.datasets[1].data = d.expense;
+            cashFlowChart.data.datasets[2].data = d.balance;
+            cashFlowChart.data.datasets[2].pointRadius = range === 'daily' ? 0 : 3;
+            cashFlowChart.update();
+        }
+
+        document.querySelectorAll('input[name="flowRange"]').forEach(function (el) {
+            el.addEventListener('change', function () { renderFlow(el.value); });
+        });
+        renderFlow('monthly');
+    })();
+</script>
+</body>
+</html>

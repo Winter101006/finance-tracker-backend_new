@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Giao dịch')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 page-title mb-1">Quản lý giao dịch</h1>
+            <p class="text-muted mb-0">Thêm, sửa, xóa và lọc các khoản thu chi của bạn</p>
+        </div>
+        <a th:href="@{/transactions/new}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm giao dịch</a>
+    </div>
+
+    <!-- ===== Bộ lọc ===== -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form th:action="@{/transactions}" method="get" class="row g-2 align-items-end">
+                <div class="col-sm-6 col-lg-2">
+                    <label for="month" class="form-label small fw-semibold text-muted">Tháng</label>
+                    <input type="month" id="month" name="month" class="form-control"
+                           th:value="${filter.month()}" data-auto-submit>
+                </div>
+                <div class="col-sm-6 col-lg-2">
+                    <label for="type" class="form-label small fw-semibold text-muted">Loại</label>
+                    <select id="type" name="type" class="form-select" data-auto-submit>
+                        <option value="">Tất cả</option>
+                        <option th:each="t : ${types}" th:value="${t}" th:text="${t.displayName}"
+                                th:selected="${filter.type() == t}">Loại</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label for="categoryId" class="form-label small fw-semibold text-muted">Danh mục</label>
+                    <select id="categoryId" name="categoryId" class="form-select" data-auto-submit>
+                        <option value="">Tất cả danh mục</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}"
+                                th:text="${c.name} + ' (' + ${c.type.displayName} + ')'"
+                                th:selected="${filter.categoryId() == c.id}">Danh mục</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label for="keyword" class="form-label small fw-semibold text-muted">Tìm kiếm</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="search" id="keyword" name="keyword" class="form-control"
+                               placeholder="Mô tả, ghi chú..." th:value="${filter.keyword()}">
+                    </div>
+                </div>
+                <div class="col-lg-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Lọc</button>
+                    <a th:href="@{/transactions}" class="btn btn-outline-secondary" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== Tổng hợp theo bộ lọc ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="stat-icon icon-income"><i class="bi bi-arrow-down-left"></i></span>
+                    <div>
+                        <div class="stat-label">Tổng thu</div>
+                        <div class="stat-value text-income"
+                             th:text="${#numbers.formatDecimal(summary.totalIncome(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="stat-icon icon-expense"><i class="bi bi-arrow-up-right"></i></span>
+                    <div>
+                        <div class="stat-label">Tổng chi</div>
+                        <div class="stat-value text-expense"
+                             th:text="${#numbers.formatDecimal(summary.totalExpense(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="stat-icon icon-net"><i class="bi bi-wallet2"></i></span>
+                    <div>
+                        <div class="stat-label">Số dư</div>
+                        <div class="stat-value" th:classappend="${summary.isNegative()} ? 'text-expense' : 'text-income'"
+                             th:text="${#numbers.formatDecimal(summary.balance(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Bảng giao dịch ===== -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-list-ul me-2"></i>Danh sách giao dịch</span>
+            <span class="badge text-bg-light" th:text="${summary.transactionCount()} + ' giao dịch'">0 giao dịch</span>
+        </div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(transactions)}" class="empty-state">
+                <i class="bi bi-receipt"></i>Không có giao dịch nào phù hợp.
+            </div>
+            <div class="table-responsive" th:unless="${#lists.isEmpty(transactions)}">
+                <table class="table table-modern mb-0">
+                    <thead>
+                    <tr>
+                        <th class="ps-4">Ngày</th>
+                        <th>Mô tả</th>
+                        <th>Danh mục</th>
+                        <th>Loại</th>
+                        <th class="text-end">Số tiền</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${transactions}">
+                        <td class="ps-4 text-nowrap" th:text="${#temporals.format(t.date, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td>
+                            <div class="fw-semibold" th:text="${t.description}">Mô tả</div>
+                            <div class="small text-muted" th:if="${t.note}" th:text="${t.note}">Ghi chú</div>
+                        </td>
+                        <td>
+                            <span class="cat-badge">
+                                <span class="dot" th:style="'background:' + ${t.category.color}"></span>
+                                <i class="bi" th:classappend="${t.category.icon}"></i>
+                                <span th:text="${t.category.name}">Danh mục</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill"
+                                  th:classappend="${t.income} ? 'text-bg-success' : 'text-bg-danger'"
+                                  th:text="${t.type.displayName}">Loại</span>
+                        </td>
+                        <td class="text-end fw-bold text-nowrap" th:classappend="${t.income} ? 'text-income' : 'text-expense'"
+                            th:text="(${t.income} ? '+' : '-') + ${#numbers.formatDecimal(t.amount, 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a th:href="@{/transactions/{id}/edit(id=${t.id})}" class="btn btn-sm btn-outline-primary" title="Sửa">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/transactions/{id}/delete(id=${t.id})}" method="post" class="d-inline"
+                                  th:data-confirm="|Xóa giao dịch: ${t.description}?|">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

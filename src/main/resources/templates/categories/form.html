@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${category.id == null ? 'Thêm danh mục' : 'Sửa danh mục'})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a th:href="@{/categories}">Danh mục</a></li>
+                    <li class="breadcrumb-item active" th:text="${category.id == null} ? 'Thêm mới' : 'Chỉnh sửa'">Thêm mới</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-tag me-2"></i>
+                    <span th:text="${category.id == null} ? 'Thêm danh mục mới' : 'Chỉnh sửa danh mục'">Danh mục</span>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/categories/save}" th:object="${category}" method="post" novalidate>
+                        <input type="hidden" th:field="*{id}">
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                            <p class="mb-0" th:each="err : ${#fields.globalErrors()}" th:text="${err}">Lỗi</p>
+                        </div>
+
+                        <!-- Xem trước -->
+                        <div class="d-flex align-items-center gap-3 p-3 mb-4 rounded-3 bg-light">
+                            <span class="cat-icon" id="previewIcon" th:style="'background:' + *{color}">
+                                <i class="bi" th:classappend="*{icon}"></i>
+                            </span>
+                            <div>
+                                <div class="small text-muted">Xem trước</div>
+                                <div class="fw-semibold" id="previewName" th:text="*{name} ?: 'Tên danh mục'">Tên danh mục</div>
+                            </div>
+                        </div>
+
+                        <!-- Loại -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Loại danh mục</label>
+                            <div class="btn-group w-100 type-switch" role="group">
+                                <input type="radio" class="btn-check" th:field="*{type}" value="EXPENSE" id="typeExpense">
+                                <label class="btn btn-outline-danger" for="typeExpense"><i class="bi bi-arrow-up-right me-1"></i>Chi tiêu</label>
+                                <input type="radio" class="btn-check" th:field="*{type}" value="INCOME" id="typeIncome">
+                                <label class="btn btn-outline-success" for="typeIncome"><i class="bi bi-arrow-down-left me-1"></i>Thu nhập</label>
+                            </div>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
+                        </div>
+
+                        <!-- Tên -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">Tên danh mục</label>
+                            <input type="text" class="form-control" th:field="*{name}" th:errorclass="is-invalid"
+                                   maxlength="50" placeholder="VD: Ăn uống, Lương..." required>
+                            <div class="invalid-feedback" th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <!-- Màu -->
+                            <div class="col-sm-4">
+                                <label for="color" class="form-label fw-semibold">Màu</label>
+                                <input type="color" class="form-control form-control-color w-100" th:field="*{color}"
+                                       th:errorclass="is-invalid">
+                                <div class="invalid-feedback" th:errors="*{color}"></div>
+                            </div>
+                            <!-- Icon -->
+                            <div class="col-sm-8">
+                                <label for="icon" class="form-label fw-semibold">Icon (Bootstrap Icons)</label>
+                                <input type="text" class="form-control" th:field="*{icon}" th:errorclass="is-invalid"
+                                       placeholder="bi-tag">
+                                <div class="invalid-feedback" th:errors="*{icon}"></div>
+                                <div class="form-text">
+                                    Xem thêm tại <a href="https://icons.getbootstrap.com" target="_blank" rel="noopener">icons.getbootstrap.com</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gợi ý icon -->
+                        <div class="mb-4">
+                            <div class="small text-muted mb-2">Chọn nhanh icon:</div>
+                            <div class="d-flex flex-wrap gap-2 icon-picker">
+                                <button type="button" class="btn btn-outline-secondary"
+                                        th:each="ic : ${ {'bi-cup-hot','bi-cart','bi-car-front','bi-house-door','bi-lightning-charge',
+                                                         'bi-bag','bi-controller','bi-heart-pulse','bi-book','bi-airplane',
+                                                         'bi-phone','bi-gift','bi-cash-stack','bi-graph-up-arrow','bi-briefcase',
+                                                         'bi-piggy-bank','bi-credit-card','bi-people','bi-tag','bi-three-dots'} }"
+                                        th:data-icon="${ic}" th:title="${ic}">
+                                    <i class="bi" th:classappend="${ic}"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a th:href="@{/categories}" class="btn btn-outline-secondary">Hủy</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-lg me-1"></i>
+                                <span th:text="${category.id == null} ? 'Thêm danh mục' : 'Lưu thay đổi'">Lưu</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+    (function () {
+        const nameInput = document.getElementById('name');
+        const iconInput = document.getElementById('icon');
+        const colorInput = document.getElementById('color');
+        const previewIcon = document.getElementById('previewIcon');
+        const previewName = document.getElementById('previewName');
+
+        function update() {
+            previewName.textContent = nameInput.value || 'Tên danh mục';
+            previewIcon.style.background = colorInput.value;
+            previewIcon.innerHTML = '';
+            const i = document.createElement('i');
+            i.className = 'bi ' + (iconInput.value || 'bi-tag');
+            previewIcon.appendChild(i);
+        }
+
+        [nameInput, iconInput, colorInput].forEach(el => el.addEventListener('input', update));
+        document.querySelectorAll('[data-icon]').forEach(btn => btn.addEventListener('click', function () {
+            iconInput.value = btn.dataset.icon;
+            update();
+        }));
+    })();
+</script>
+</body>
+</html>
