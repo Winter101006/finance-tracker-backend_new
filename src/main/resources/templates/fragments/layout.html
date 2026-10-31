@@ -48,10 +48,10 @@
                 </li>
             </ul>
             <div class="d-flex gap-2">
-                <a class="btn btn-sm btn-light text-success fw-semibold" th:href="@{/transactions/new(type='INCOME')}">
+                <a class="btn btn-sm btn-nav-action btn-nav-income" th:href="@{/transactions/new(type='INCOME')}">
                     <i class="bi bi-plus-lg"></i> Khoản thu
                 </a>
-                <a class="btn btn-sm btn-warning fw-semibold" th:href="@{/transactions/new(type='EXPENSE')}">
+                <a class="btn btn-sm btn-nav-action btn-nav-expense" th:href="@{/transactions/new(type='EXPENSE')}">
                     <i class="bi bi-dash-lg"></i> Khoản chi
                 </a>
             </div>
@@ -72,10 +72,14 @@
 </div>
 
 <!-- ============ FOOTER ============ -->
-<footer th:fragment="footer" class="app-footer py-4 mt-5">
-    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 small text-muted">
-        <span>&copy; <span th:text="${#temporals.year(#temporals.createNow())}">2026</span> Finance Tracker &middot; Spring Boot + Thymeleaf</span>
-        <span><i class="bi bi-database me-1"></i>Dữ liệu được lưu vĩnh viễn bằng H2 (file)</span>
+<footer th:fragment="footer" class="app-footer py-4 mt-auto">
+    <div class="container text-center">
+        <div class="footer-creator">
+            <span class="footer-badge">
+                <i class="bi bi-patch-check-fill text-sky me-1"></i>
+                <span>Nhà sáng tạo: <strong class="creator-name">Phạm Ngọc Huân</strong></span>
+            </span>
+        </div>
     </div>
 </footer>
 

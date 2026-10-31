@@ -277,11 +277,11 @@
             data: {
                 labels: [],
                 datasets: [
-                    {type: 'bar', label: 'Thu', data: [], backgroundColor: 'rgba(22,163,74,.75)', borderRadius: 6, order: 2},
-                    {type: 'bar', label: 'Chi', data: [], backgroundColor: 'rgba(220,38,38,.75)', borderRadius: 6, order: 3},
+                    {type: 'bar', label: 'Thu', data: [], backgroundColor: 'rgba(5, 150, 105, 0.78)', borderRadius: 6, order: 2},
+                    {type: 'bar', label: 'Chi', data: [], backgroundColor: 'rgba(225, 29, 72, 0.78)', borderRadius: 6, order: 3},
                     {
-                        type: 'line', label: 'Số dư lũy kế', data: [], borderColor: '#4f46e5',
-                        backgroundColor: 'rgba(79,70,229,.12)', fill: true, tension: .35,
+                        type: 'line', label: 'Số dư lũy kế', data: [], borderColor: '#0284c7',
+                        backgroundColor: 'rgba(2, 132, 199, 0.14)', fill: true, tension: .35,
                         pointRadius: 3, pointHoverRadius: 6, borderWidth: 2.5, order: 1
                     }
                 ]
@@ -291,7 +291,7 @@
                 interaction: {mode: 'index', intersect: false},
                 scales: {
                     x: {grid: {display: false}},
-                    y: {ticks: {callback: (v) => formatShortVnd(v)}, grid: {color: 'rgba(15,23,42,.06)'}}
+                    y: {ticks: {callback: (v) => formatShortVnd(v)}, grid: {color: 'rgba(2, 132, 199, 0.08)'}}
                 },
                 plugins: {
                     legend: {position: 'bottom', labels: {usePointStyle: true, boxWidth: 8, padding: 14}},
